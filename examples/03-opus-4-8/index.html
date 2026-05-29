@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<title>Claude Opus 4.8 的真正突破 — 社群科普影片</title>
+<script>
+window.onerror = function(m, s, l, c, e){ console.error("SYNTAX ERROR:", m, "at", s, "line", l); return false; };
+</script>
+<style>
+  @font-face { font-family:'GenSeki TW'; src:url('assets/fonts/GenSekiGothic2TW-M.otf') format('opentype'); font-weight:500; font-display:block; }
+  @font-face { font-family:'GenSeki TW'; src:url('assets/fonts/GenSekiGothic2TW-B.otf') format('opentype'); font-weight:700; font-display:block; }
+  @font-face { font-family:'GenSeki TW'; src:url('assets/fonts/GenSekiGothic2TW-H.otf') format('opentype'); font-weight:900; font-display:block; }
+
+  :root{
+    --bg-paper:#FAF7EE; --bg-card:#F2EDDC; --color-ink:#1A1A1A;
+    --color-teal:#0E7C7B; --color-coral:#E36414; --color-neon:#FFD23F;
+    --fs-hero:clamp(100px,8vw,150px);
+    --fs-title:clamp(56px,5.5vw,96px);
+    --fs-sub:clamp(38px,3.8vw,64px);
+    --fs-body:clamp(24px,2.5vw,48px);
+    --fs-note:clamp(16px,1.8vw,36px);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ width:100%; height:100%; background:var(--color-ink); color:var(--color-ink);
+    font-family:'GenSeki TW',sans-serif; overflow:hidden; user-select:none; }
+  svg g{ transform-box:fill-box; transform-origin:center; }
+
+  .stage{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
+  .slide{ position:absolute; inset:0; opacity:0; padding:60px 80px 140px 80px;
+    display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-start;
+    background:var(--bg-paper); transition:opacity 0.6s ease-in-out; pointer-events:none; z-index:1; }
+  .slide.active{ opacity:1; pointer-events:auto; z-index:2; }
+  .slide.l5{ background:var(--color-ink); color:var(--bg-paper); align-items:center; justify-content:center; text-align:center; }
+
+  .slide-title{ font-weight:900; font-size:var(--fs-title); color:var(--color-ink);
+    margin-bottom:24px; border-left:12px solid var(--color-teal); padding-left:24px; line-height:1.1; }
+  .slide.l5 .slide-title{ border-left:none; padding-left:0; text-align:center; color:var(--bg-paper); }
+
+  .chapter-chip{ position:absolute; top:32px; left:32px; font-size:16px; font-weight:700; color:rgba(26,26,26,0.6); z-index:5; }
+  .chapter-chip span{ background:var(--color-teal); color:var(--bg-paper); padding:3px 10px; border-radius:4px; font-weight:900; margin-right:6px; }
+  .slide.l5 .chapter-chip{ color:rgba(250,247,238,0.5); }
+
+  .progress-bar{ position:absolute; left:0; bottom:0; height:8px;
+    background:linear-gradient(90deg,var(--color-teal),var(--color-neon)); width:0%; transition:width 0.1s linear; z-index:99; }
+
+  .subtitle-container{ position:absolute; left:50%; bottom:80px; transform:translateX(-50%);
+    width:84%; max-width:1500px; padding:12px 28px; border-radius:12px;
+    background:rgba(26,26,26,0.92); color:#fff; font-weight:700; font-size:var(--fs-note);
+    line-height:1.4; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,0.3); z-index:90; }
+
+  .content-area{ width:100%; flex:1; display:flex; align-items:center; justify-content:center; margin-top:10px; }
+
+  /* L1 全版照片 */
+  .l1-photo{ position:absolute; inset:0; background-size:cover; background-position:center; filter:brightness(0.42); transition:transform 16s linear; }
+  .slide.active .l1-photo{ transform:scale(1.08) translate(5px,5px); }
+  .l1-content{ position:relative; z-index:3; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; color:#fff; text-align:center; }
+  .l1-content h2{ font-size:var(--fs-sub); font-weight:900; line-height:1.35; }
+
+  /* L2 左右並列 */
+  .l2-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; width:100%; height:100%; gap:60px; align-items:center; }
+  .l2-photo-container{ height:88%; border-radius:20px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.15); position:relative; }
+  .l2-photo{ width:100%; height:100%; background-size:cover; background-position:center; transition:transform 20s linear; }
+  .slide.active .l2-photo{ transform:scale(1.1) rotate(0.5deg); }
+  .l2-text-col{ display:flex; flex-direction:column; justify-content:center; }
+  .l2-text-col h2{ font-size:var(--fs-sub); font-weight:900; line-height:1.3; }
+  .l2-text-col .hl{ color:var(--color-teal); }
+
+  /* L3 卡片陣列 */
+  .l3-grid{ display:grid; gap:36px; width:100%; align-content:center; }
+  .l3-card{ background:var(--bg-card); border:4px solid var(--color-neon); border-radius:20px; padding:30px 36px;
+    display:flex; align-items:center; gap:30px; opacity:0; transform:translateY(40px);
+    transition:all 0.7s cubic-bezier(0.175,0.885,0.32,1.275); box-shadow:0 8px 24px rgba(255,210,63,0.1); }
+  .slide.active .l3-card{ opacity:1; transform:translateY(0); }
+  .l3-card.c1{ transition-delay:0.3s; } .l3-card.c2{ transition-delay:0.9s; } .l3-card.c3{ transition-delay:1.5s; }
+  .l3-card .ic{ font-size:72px; min-width:80px; text-align:center; }
+  .l3-card .txt-title{ font-size:38px; font-weight:900; color:var(--color-ink); }
+  .l3-card .txt-desc{ font-size:25px; font-weight:500; color:rgba(26,26,26,0.7); margin-top:6px; }
+
+  /* L4 SVG 置中 */
+  .l4-container{ width:92%; display:flex; flex-direction:column; align-items:center; }
+
+  /* L5 純大字 */
+  .l5 h1{ font-weight:900; font-size:var(--fs-hero); line-height:1.2; letter-spacing:0.04em; }
+  .l5 .hl{ color:var(--color-neon); text-shadow:0 0 40px rgba(255,210,63,0.3); }
+  .l5 .coral{ color:var(--color-coral); }
+  .l5 .sub-l2{ font-size:var(--fs-sub); color:rgba(250,247,238,0.85); margin-top:30px; letter-spacing:0.08em; }
+  .l5 .sig{ margin-top:70px; font-size:24px; letter-spacing:0.4em; color:rgba(250,247,238,0.4); font-weight:700; }
+
+  /* L6 對比 */
+  .l6-grid{ display:grid; grid-template-columns:1fr 80px 1fr; width:90%; align-items:center; justify-items:center; }
+  .l6-side{ text-align:center; width:100%; padding:40px; background:var(--bg-card); border-radius:24px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.05); opacity:0; transition:all 0.8s cubic-bezier(0.16,1,0.3,1); }
+  .l6-left{ transform:translateX(-40px); } .l6-right{ transform:translateX(40px); }
+  .slide.active .l6-side{ opacity:1; transform:translateX(0); }
+  .l6-side.l6-right{ border:4px solid var(--color-teal); box-shadow:0 10px 30px rgba(14,124,123,0.15); }
+  .l6-side .label{ font-size:30px; font-weight:900; letter-spacing:0.1em; margin-bottom:20px; color:rgba(26,26,26,0.6); }
+  .l6-side .big{ font-size:clamp(80px,9vw,140px); font-weight:900; line-height:1; }
+  .l6-left .big{ color:var(--color-coral); }
+  .l6-right .big{ color:var(--color-teal); text-shadow:0 0 30px rgba(14,124,123,0.25); }
+  .l6-side .desc{ font-size:28px; font-weight:700; margin-top:15px; color:var(--color-ink); }
+  .l6-arrow{ font-size:80px; font-weight:900; color:var(--color-coral); opacity:0; transform:scale(0.5);
+    transition:all 0.8s cubic-bezier(0.175,0.885,0.32,1.275); transition-delay:0.4s; }
+  .slide.active .l6-arrow{ opacity:1; transform:scale(1); }
+  .l6-footer{ width:90%; margin-top:36px; display:flex; gap:30px; justify-content:center; opacity:0; transition:opacity 0.8s ease; transition-delay:1s; }
+  .slide.active .l6-footer{ opacity:1; }
+  .l6-footer .chip{ background:var(--color-ink); color:#fff; font-weight:900; font-size:30px; padding:14px 28px; border-radius:14px; }
+  .l6-footer .chip b{ color:var(--color-neon); }
+
+  /* P5 時間軸 */
+  .tl-line{ stroke-dasharray:1400; stroke-dashoffset:1400; transition:stroke-dashoffset 1.4s cubic-bezier(0.4,0,0.2,1); }
+  .slide-5.tl-go .tl-line{ stroke-dashoffset:0; }
+  .tl-node,.tl-badge{ opacity:0; transition:opacity 0.6s ease, transform 0.6s cubic-bezier(0.175,0.885,0.32,1.275); transform:scale(0.85); }
+  .slide-5.tl-go .tl-n1{ opacity:1; transform:scale(1); transition-delay:0.3s; }
+  .slide-5.tl-go .tl-n2{ opacity:1; transform:scale(1); transition-delay:1.1s; }
+  .slide-5.tl-go .tl-badge{ opacity:1; transform:scale(1); transition-delay:1.7s; }
+
+  /* P6 subagent 放射 */
+  .ray{ stroke-dasharray:300; stroke-dashoffset:300; transition:stroke-dashoffset 0.9s ease; }
+  .slide-6.radiate .ray{ stroke-dashoffset:0; }
+  .sa{ opacity:0; transform:scale(0.4); transition:opacity 0.5s ease, transform 0.5s cubic-bezier(0.175,0.885,0.32,1.4); }
+  .slide-6.radiate .sa{ opacity:1; transform:scale(1); }
+  .slide-6.radiate .sa:nth-of-type(1){transition-delay:.55s}.slide-6.radiate .sa:nth-of-type(2){transition-delay:.62s}
+  .slide-6.radiate .sa:nth-of-type(3){transition-delay:.69s}.slide-6.radiate .sa:nth-of-type(4){transition-delay:.76s}
+  .slide-6.radiate .sa:nth-of-type(5){transition-delay:.83s}.slide-6.radiate .sa:nth-of-type(6){transition-delay:.90s}
+  .slide-6.radiate .sa:nth-of-type(7){transition-delay:.97s}.slide-6.radiate .sa:nth-of-type(8){transition-delay:1.04s}
+  .slide-6.radiate .sa:nth-of-type(9){transition-delay:1.11s}.slide-6.radiate .sa:nth-of-type(10){transition-delay:1.18s}
+  .slide-6.radiate .sa:nth-of-type(11){transition-delay:1.25s}.slide-6.radiate .sa:nth-of-type(12){transition-delay:1.32s}
+  .hub-pulse{ animation:hubpulse 1.8s ease-in-out infinite; }
+  @keyframes hubpulse{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.06);} }
+
+  /* P7 Effort 滑桿 */
+  .knob{ transform:translateX(0); transition:transform 2.6s cubic-bezier(0.4,0,0.2,1); }
+  .slide-7.go .knob{ transform:translateX(430px); }
+  .eff-label{ opacity:0.35; transition:opacity 0.4s ease; font-weight:900; }
+  .slide-7.go .eff-high{ opacity:1; }
+
+  /* 開場遮罩 */
+  .start-screen{ position:fixed; inset:0; background:var(--color-ink); z-index:999;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; gap:32px; transition:opacity 0.5s ease; }
+  .start-screen.hidden{ opacity:0; pointer-events:none; }
+  .start-screen .title{ font-weight:900; font-size:clamp(48px,6.5vw,120px); color:var(--bg-paper); letter-spacing:0.04em; }
+  .start-screen .title span{ color:var(--color-neon); text-shadow:0 0 35px rgba(255,210,63,0.4); }
+  .start-screen .play{ width:90px; height:90px; border:2px solid var(--color-neon); border-radius:50%;
+    display:flex; align-items:center; justify-content:center; color:var(--color-neon); }
+  .start-screen .sub{ color:rgba(250,247,238,0.55); font-size:22px; letter-spacing:0.15em; }
+</style>
+</head>
+<body>
+
+<div class="start-screen" id="startScreen">
+  <div class="title"><span>Claude</span> Opus 4.8</div>
+  <div class="play"><svg width="26" height="30" viewBox="0 0 24 28"><path d="M2 2 L22 14 L2 26 Z" fill="currentColor"/></svg></div>
+  <div class="sub">社群科普影片 · 點擊開始 · 約 3 分鐘</div>
+</div>
+
+<div class="stage" id="stage">
+
+  <!-- P1 Hook L5 -->
+  <div class="slide slide-1 l5" data-slide="1">
+    <div class="chapter-chip"><span>01</span> / 13 — 懸念</div>
+    <h1>又一個更聰明的 AI？<br><span class="coral">這次的重點，</span><br><span class="hl">不在「聰明」。</span></h1>
+  </div>
+
+  <!-- P2 L1 全版照片 -->
+  <div class="slide slide-2" data-slide="2">
+    <div class="chapter-chip"><span>02</span> / 13 — 速度</div>
+    <div class="l1-photo" style="background-image:url('assets/images/tech.jpg')"></div>
+    <div class="l1-content">
+      <h2>上一版 Opus 4.7<br><span style="color:var(--color-neon); font-size:1.3em;">才發了 41 天</span><br><br>4.8 就來了。</h2>
+    </div>
+  </div>
+
+  <!-- P3 L2 員工比喻 -->
+  <div class="slide slide-3" data-slide="3">
+    <div class="chapter-chip"><span>03</span> / 13 — 比喻</div>
+    <div class="l2-grid">
+      <div class="l2-photo-container"><div class="l2-photo" style="background-image:url('assets/images/office.jpg')"></div></div>
+      <div class="l2-text-col">
+        <div class="slide-title">把 AI 當同事</div>
+        <h2>舊版像<span class="hl">逞強的新人</span><br>不懂也硬答<br><br>4.8 像<span class="hl">資深同事</span></h2>
+        <p style="font-size:30px; margin-top:20px; line-height:1.4; color:#555;">不確定的時候，它會直接跟你說「我不確定」。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- P4 L3 三個可信訊號 -->
+  <div class="slide slide-4" data-slide="4">
+    <div class="chapter-chip"><span>04</span> / 13 — 可信</div>
+    <div class="slide-title">更值得信任的三個訊號</div>
+    <div class="content-area">
+      <div class="l3-grid" style="grid-template-columns:1fr; width:100%; max-width:1300px;">
+        <div class="l3-card c1"><div class="ic">🙋</div><div class="txt-col"><div class="txt-title">會標不確定</div><div class="txt-desc">不再不懂裝懂，沒把握就明講</div></div></div>
+        <div class="l3-card c2"><div class="ic">📊</div><div class="txt-col"><div class="txt-title">不亂吹進度</div><div class="txt-desc">對自己做到哪更誠實，過度自信大幅下降</div></div></div>
+        <div class="l3-card c3"><div class="ic">🎯</div><div class="txt-col"><div class="txt-title">抓得到重點</div><div class="txt-desc">重要的事會主動提醒你，更能獨立把長任務做完</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P5 L4 時間軸 + 價格 -->
+  <div class="slide slide-5" data-slide="5">
+    <div class="chapter-chip"><span>05</span> / 13 — 價格</div>
+    <div class="slide-title">能力升級，價格沒漲</div>
+    <div class="content-area">
+      <div class="l4-container">
+        <svg width="1400" height="360" viewBox="0 0 1400 360">
+          <line class="tl-line" x1="180" y1="150" x2="1220" y2="150" stroke="var(--color-ink)" stroke-width="5"/>
+          <g class="tl-node tl-n1">
+            <circle cx="320" cy="150" r="60" fill="var(--color-coral)"/>
+            <text x="320" y="165" text-anchor="middle" fill="#fff" font-size="42" font-weight="900" font-family="GenSeki TW">4.7</text>
+            <text x="320" y="270" text-anchor="middle" fill="#777" font-size="30" font-weight="700" font-family="GenSeki TW">41 天前</text>
+          </g>
+          <g class="tl-node tl-n2">
+            <circle cx="1080" cy="150" r="72" fill="var(--color-teal)"/>
+            <circle cx="1080" cy="150" r="86" fill="none" stroke="var(--color-neon)" stroke-width="5" stroke-dasharray="14,8"/>
+            <text x="1080" y="166" text-anchor="middle" fill="#fff" font-size="48" font-weight="900" font-family="GenSeki TW">4.8</text>
+            <text x="1080" y="280" text-anchor="middle" fill="var(--color-teal)" font-size="30" font-weight="900" font-family="GenSeki TW">現在</text>
+          </g>
+          <g class="tl-badge">
+            <text x="700" y="95" text-anchor="middle" fill="var(--color-ink)" font-size="40" font-weight="900" font-family="GenSeki TW">僅僅 41 天迭代</text>
+          </g>
+        </svg>
+        <div class="l6-footer" style="opacity:1; margin-top:10px;">
+          <div class="chip">價格不變：<b>$5</b> 進 / <b>$25</b> 出（每百萬 token）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P6 L4 Dynamic Workflow 放射 -->
+  <div class="slide slide-6" data-slide="6">
+    <div class="chapter-chip"><span>06</span> / 13 — 並行</div>
+    <div class="slide-title">Dynamic Workflow</div>
+    <div class="content-area">
+      <div class="l4-container">
+        <svg width="1000" height="460" viewBox="0 0 900 440">
+          <!-- rays -->
+          <g stroke="var(--color-teal)" stroke-width="3" opacity="0.5">
+            <line class="ray" x1="450" y1="210" x2="625" y2="210"/><line class="ray" x1="450" y1="210" x2="602" y2="298"/>
+            <line class="ray" x1="450" y1="210" x2="538" y2="362"/><line class="ray" x1="450" y1="210" x2="450" y2="385"/>
+            <line class="ray" x1="450" y1="210" x2="362" y2="362"/><line class="ray" x1="450" y1="210" x2="298" y2="298"/>
+            <line class="ray" x1="450" y1="210" x2="275" y2="210"/><line class="ray" x1="450" y1="210" x2="298" y2="122"/>
+            <line class="ray" x1="450" y1="210" x2="362" y2="58"/><line class="ray" x1="450" y1="210" x2="450" y2="35"/>
+            <line class="ray" x1="450" y1="210" x2="538" y2="58"/><line class="ray" x1="450" y1="210" x2="602" y2="122"/>
+          </g>
+          <!-- subagent 節點 -->
+          <g class="sa"><circle cx="625" cy="210" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="602" cy="298" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="538" cy="362" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="450" cy="385" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="362" cy="362" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="298" cy="298" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="275" cy="210" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="298" cy="122" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="362" cy="58" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="450" cy="35" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="538" cy="58" r="26" fill="var(--color-neon)"/></g>
+          <g class="sa"><circle cx="602" cy="122" r="26" fill="var(--color-neon)"/></g>
+          <!-- 主代理 -->
+          <g class="hub-pulse">
+            <circle cx="450" cy="210" r="70" fill="var(--color-teal)"/>
+            <text x="450" y="200" text-anchor="middle" fill="#fff" font-size="30" font-weight="900" font-family="GenSeki TW">主代理</text>
+            <text x="450" y="238" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="20" font-family="GenSeki TW">main</text>
+          </g>
+        </svg>
+        <h2 style="font-size:34px; font-weight:900; text-align:center; color:#444; margin-top:6px;">一個對話，同時派出<span style="color:var(--color-teal)">數百個子代理</span>分頭做事，再收回結果</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- P7 L2 Effort 滑桿 -->
+  <div class="slide slide-7" data-slide="7">
+    <div class="chapter-chip"><span>07</span> / 13 — 控制</div>
+    <div class="l2-grid" style="grid-template-columns:1fr 0.85fr;">
+      <div style="display:flex; align-items:center; justify-content:center;">
+        <svg width="620" height="320" viewBox="0 0 620 320">
+          <rect x="60" y="150" width="500" height="26" rx="13" fill="#ddd"/>
+          <rect x="60" y="150" width="500" height="26" rx="13" fill="url(#g1)"/>
+          <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="var(--color-teal)"/><stop offset="1" stop-color="var(--color-neon)"/></linearGradient></defs>
+          <text class="eff-label eff-low" x="70" y="230" fill="var(--color-ink)" font-size="32" font-family="GenSeki TW">low · 快</text>
+          <text class="eff-label eff-high" x="470" y="230" fill="var(--color-ink)" font-size="32" font-family="GenSeki TW">high · 深</text>
+          <g class="knob"><circle cx="90" cy="163" r="40" fill="#fff" stroke="var(--color-teal)" stroke-width="8"/></g>
+        </svg>
+      </div>
+      <div class="l2-text-col">
+        <div class="slide-title">Effort</div>
+        <h2><span class="hl">你決定</span><br>它想多深</h2>
+        <p style="font-size:30px; margin-top:20px; line-height:1.4; color:#555;">趕時間調低、求品質調高。深度，你說了算。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- P8 L6 Fast Mode -->
+  <div class="slide slide-8" data-slide="8">
+    <div class="chapter-chip"><span>08</span> / 13 — 又快又省</div>
+    <div class="slide-title">Fast Mode</div>
+    <div class="content-area">
+      <div class="l6-grid">
+        <div class="l6-side l6-left"><div class="label">速度</div><div class="big">2.5×</div><div class="desc">快兩倍半</div></div>
+        <div class="l6-arrow">＋</div>
+        <div class="l6-side l6-right"><div class="label">成本</div><div class="big">÷3</div><div class="desc">比舊版便宜 3 倍</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P9 L5 反轉 -->
+  <div class="slide slide-9 l5" data-slide="9">
+    <div class="chapter-chip"><span>09</span> / 13 — 反轉</div>
+    <h1>真正的突破<br><span style="color:rgba(250,247,238,0.6); font-size:0.7em;">不是更聰明，是更</span><span class="hl">可信</span><br><span class="sub-l2">讓 bug 溜過不出聲的機率，降到約 1/4</span></h1>
+  </div>
+
+  <!-- P10 L6 Benchmark -->
+  <div class="slide slide-10" data-slide="10">
+    <div class="chapter-chip"><span>10</span> / 13 — 數據</div>
+    <div class="slide-title">數字也跟上了</div>
+    <div class="content-area" style="flex-direction:column;">
+      <div class="l6-grid">
+        <div class="l6-side l6-left"><div class="label">Opus 4.7</div><div class="big">64.3%</div><div class="desc">agentic coding</div></div>
+        <div class="l6-arrow">➔</div>
+        <div class="l6-side l6-right"><div class="label">Opus 4.8</div><div class="big">69.2%</div><div class="desc">實戰級程式任務</div></div>
+      </div>
+      <div class="l6-footer">
+        <div class="chip">SWE-bench Verified <b>88.6%</b></div>
+        <div class="chip">照搬錯誤結果 <b>0%</b>（史上首次）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P11 L3 三個你用得到 -->
+  <div class="slide slide-11" data-slide="11">
+    <div class="chapter-chip"><span>11</span> / 13 — 應用</div>
+    <div class="slide-title">三個你馬上用得到</div>
+    <div class="content-area">
+      <div class="l3-grid" style="grid-template-columns:1fr 1fr 1fr; width:100%;">
+        <div class="l3-card c1" style="flex-direction:column; text-align:center; gap:14px;"><div class="ic">💰</div><div class="txt-col"><div class="txt-title">省錢</div><div class="txt-desc">一般任務開 Fast Mode</div></div></div>
+        <div class="l3-card c2" style="flex-direction:column; text-align:center; gap:14px;"><div class="ic">🎚️</div><div class="txt-col"><div class="txt-title">調深度</div><div class="txt-desc">難題把 Effort 調高</div></div></div>
+        <div class="l3-card c3" style="flex-direction:column; text-align:center; gap:14px;"><div class="ic">🏗️</div><div class="txt-col"><div class="txt-title">跑大改造</div><div class="txt-desc">大型重構交給 Dynamic Workflow</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P12 L5 金句 -->
+  <div class="slide slide-12 l5" data-slide="12">
+    <div class="chapter-chip"><span>12</span> / 13 — 金句</div>
+    <h1>AI 的下一步<br>不是更會說<br><span class="hl">是更敢說「不知道」</span></h1>
+  </div>
+
+  <!-- P13 L5 結尾 -->
+  <div class="slide slide-13 l5" data-slide="13">
+    <div class="chapter-chip"><span>13</span> / 13 — 完</div>
+    <h1>Claude Opus 4.8</h1>
+    <p style="font-size:36px; color:rgba(250,247,238,0.7); margin-top:20px;">而更強的 Mythos 級模型，數週內登場。</p>
+    <div class="sig">OPUS 4.8 · 完</div>
+  </div>
+
+</div>
+
+<div class="subtitle-container" id="subtitle">Opus 4.8 出了——但真正的突破，不是更聰明。</div>
+<div class="progress-bar" id="progress-bar"></div>
+
+<script>
+const PAGES = [
+  { i: 1, dur: 11, sub: "Opus 4.8 出了——但真正的突破，不是更聰明。" },
+  { i: 2, dur: 14, sub: "4.7 才發 41 天，4.8 就來了。迭代快到跟不上。" },
+  { i: 3, dur: 17, sub: "舊 AI 像逞強的新人；4.8 像會說「我不確定」的資深同事。" },
+  { i: 4, dur: 16, sub: "更誠實、更獨立：會標不確定、不亂吹進度、抓得到重點。" },
+  { i: 5, dur: 13, sub: "價格沒漲：跟 4.7 一樣 $5 進 / $25 出（每百萬 token）。" },
+  { i: 6, dur: 17, sub: "Dynamic Workflow：一次派出數百個子代理，分頭做再收回。" },
+  { i: 7, dur: 15, sub: "Effort 旋鈕：調低求快、調高求深。深度你說了算。" },
+  { i: 8, dur: 13, sub: "Fast Mode：速度 2.5 倍、比舊版便宜 3 倍。" },
+  { i: 9, dur: 15, sub: "真突破是可信度：讓 bug 溜過不出聲的機率，降到約 1/4。" },
+  { i: 10, dur: 15, sub: "agentic coding 64.3% → 69.2%；首度「照搬錯誤結果」0%。" },
+  { i: 11, dur: 12, sub: "日常開 Fast Mode、難題調高 Effort、大改造用 Dynamic Workflow。" },
+  { i: 12, dur: 13, sub: "AI 的下一步，不是更會說，而是更敢說「不知道」。" },
+  { i: 13, dur: 10, sub: "而 Mythos 級模型，數週內登場。" }
+];
+
+let accum = 0;
+const TIMINGS = PAGES.map(p => { const start = accum; accum += p.dur; return { i: p.i, s: start, e: accum, sub: p.sub }; });
+const TOTAL_DUR = accum;
+
+const slideEls = [...document.querySelectorAll('.slide')];
+const subtitleEl = document.getElementById('subtitle');
+let progressBar = null;
+const startScreen = document.getElementById('startScreen');
+const audio = new Audio("renders/master_audio.mp3");
+audio.preload = "auto";
+
+let currentIdx = -1, virtualTime = 0, lastTickTime = 0, useVirtualTimer = false, isPlaying = false;
+const urlParams = new URLSearchParams(window.location.search);
+const isRenderMode = urlParams.get('autoplay') === 'true' || urlParams.get('render') === 'true';
+
+function tick(){
+  if (!isPlaying) return;
+  let t = 0;
+  if (useVirtualTimer || isRenderMode){
+    const now = performance.now();
+    if (lastTickTime === 0) lastTickTime = now;
+    const dt = (now - lastTickTime)/1000; lastTickTime = now; virtualTime += dt; t = virtualTime;
+  } else {
+    t = audio.currentTime;
+    if (audio.paused && t === 0 && lastTickTime > 0){
+      const now = performance.now(); const dt = (now-lastTickTime)/1000; lastTickTime = now; virtualTime += dt; t = virtualTime;
+    } else { lastTickTime = performance.now(); }
+  }
+  const pb = progressBar || (progressBar = document.getElementById('progress-bar'));
+  if (pb) pb.style.width = (Math.min(t/TOTAL_DUR,1)*100) + '%';
+
+  const idx = TIMINGS.findIndex(p => t >= p.s && t < p.e);
+  if (idx !== -1 && idx !== currentIdx){
+    console.log(`Slide ${idx+1} @ ${t.toFixed(2)}s`);
+    slideEls.forEach((el,i)=> el.classList.toggle('active', i===idx));
+    subtitleEl.textContent = TIMINGS[idx].sub;
+    currentIdx = idx;
+    resetSlideAnimations();
+  }
+  if (currentIdx !== -1){
+    const pageT = t - TIMINGS[currentIdx].s;
+    updateSlideInternalAnimations(currentIdx+1, pageT);
+  }
+  if (t >= TOTAL_DUR){
+    isPlaying = false; audio.pause();
+    slideEls.forEach(el=> el.classList.remove('active'));
+    slideEls[slideEls.length-1].classList.add('active');
+    return;
+  }
+  requestAnimationFrame(tick);
+}
+
+function resetSlideAnimations(){
+  slideEls.forEach(el=>{
+    el.className = 'slide slide-' + el.getAttribute('data-slide') + (el.classList.contains('l5')?' l5':'') + (el.classList.contains('active')?' active':'');
+  });
+}
+
+function updateSlideInternalAnimations(slideNum, pageT){
+  const el = slideEls[slideNum-1];
+  if (slideNum === 5){ if (pageT >= 1.3) el.classList.add('tl-go'); }
+  else if (slideNum === 6){ if (pageT >= 1.0) el.classList.add('radiate'); }
+  else if (slideNum === 7){ if (pageT >= 1.0) el.classList.add('go'); }
+}
+
+startScreen.addEventListener('click', ()=>{
+  startScreen.classList.add('hidden');
+  isPlaying = true; virtualTime = 0; lastTickTime = performance.now();
+  audio.currentTime = 0;
+  audio.play().catch(err=>{ console.warn("音訊播放失敗，改用虛擬計時器:", err); useVirtualTimer = true; });
+  slideEls[0].classList.add('active'); currentIdx = 0; resetSlideAnimations();
+  requestAnimationFrame(tick);
+});
+
+if (isRenderMode){
+  console.log("Render mode: auto play");
+  startScreen.style.display = 'none'; startScreen.classList.add('hidden');
+  isPlaying = true; virtualTime = 0; useVirtualTimer = true; lastTickTime = performance.now();
+  audio.currentTime = 0;
+  setTimeout(()=>{
+    audio.play().catch(()=>{});
+    slideEls[0].classList.add('active'); currentIdx = 0; resetSlideAnimations();
+    requestAnimationFrame(tick);
+  }, 200);
+}
+</script>
+</body>
+</html>

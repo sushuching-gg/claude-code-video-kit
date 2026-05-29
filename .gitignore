@@ -1,0 +1,29 @@
+# Google Drive 系統檔
+desktop.ini
+*.tmp
+~$*
+
+# 敏感資料
+.env
+*.key
+credentials.*
+
+# Binary 素材（本 repo 不含 binary，全由 bootstrap 取得）
+*.mp4
+*.mp3
+*.wav
+*.otf
+*.ttf
+*.jpg
+*.jpeg
+*.png
+*.webm
+
+# 渲染暫存與依賴
+renders/
+node_modules/
+assets/fonts/
+assets/images/
+assets/narration/
+__pycache__/
+*.pyc
