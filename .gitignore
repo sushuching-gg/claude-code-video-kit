@@ -27,3 +27,12 @@ assets/images/
 assets/narration/
 __pycache__/
 *.pyc
+video_indexer/*_index/
+video_indexer/keyframes/
+video_indexer/noise_samples/
+video_indexer/denoised_samples/
+video_indexer/batch_enhanced/
+video_indexer/ab_comparison_samples/
+video_indexer/*.mp4
+*.rnnn
+

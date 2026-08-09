@@ -1,7 +1,19 @@
 # 量測每段旁白音訊精確時長，輸出 index.html / render.py 共用的 PAGES 時長表
 # 執行：python get_durations.py
-import sys, subprocess, json
+import sys, os, subprocess, json, shutil, glob
 from pathlib import Path
+
+def ensure_ffmpeg_in_path():
+    if shutil.which("ffprobe") and shutil.which("ffmpeg"):
+        return
+    localapp = os.environ.get("LOCALAPPDATA", "")
+    candidates = glob.glob(os.path.join(localapp, "Microsoft", "WinGet", "Packages", "*ffmpeg*", "**", "bin"), recursive=True)
+    for c in candidates:
+        if os.path.exists(os.path.join(c, "ffprobe.exe")):
+            os.environ["PATH"] = c + os.pathsep + os.environ["PATH"]
+            break
+
+ensure_ffmpeg_in_path()
 
 if sys.platform.startswith('win'):
     import codecs

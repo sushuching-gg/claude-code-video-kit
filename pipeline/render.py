@@ -3,6 +3,18 @@
 import os, sys, shutil, subprocess, glob
 from pathlib import Path
 
+def ensure_ffmpeg_in_path():
+    if shutil.which("ffmpeg"):
+        return
+    localapp = os.environ.get("LOCALAPPDATA", "")
+    candidates = glob.glob(os.path.join(localapp, "Microsoft", "WinGet", "Packages", "*ffmpeg*", "**", "bin"), recursive=True)
+    for c in candidates:
+        if os.path.exists(os.path.join(c, "ffmpeg.exe")):
+            os.environ["PATH"] = c + os.pathsep + os.environ["PATH"]
+            break
+
+ensure_ffmpeg_in_path()
+
 if sys.platform.startswith('win'):
     import codecs
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
